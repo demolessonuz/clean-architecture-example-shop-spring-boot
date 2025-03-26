@@ -4,6 +4,7 @@ import com.shop.domain.model.Order;
 import com.shop.domain.model.OrderItem;
 import com.shop.domain.model.OrderStatus;
 import com.shop.domain.model.Product;
+import com.shop.domain.port.OrderUseCase;
 import com.shop.domain.repository.OrderRepository;
 import com.shop.domain.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,10 +18,11 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class OrderService {
+public class OrderService implements OrderUseCase {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
 
+    @Override
     @Transactional
     public Order createOrder(Order order) {
         // Validate products and calculate total
@@ -33,21 +35,25 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public Optional<Order> getOrder(Long id) {
         return orderRepository.findById(id);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
     }
 
+    @Override
     @Transactional
     public void deleteOrder(Long id) {
         orderRepository.deleteById(id);
     }
 
+    @Override
     @Transactional
     public Order updateOrderStatus(Long id, OrderStatus status) {
         Order order = orderRepository.findById(id)

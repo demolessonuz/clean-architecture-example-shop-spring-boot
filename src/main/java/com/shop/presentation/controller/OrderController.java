@@ -1,9 +1,9 @@
 package com.shop.presentation.controller;
 
-import com.shop.application.service.OrderService;
 import com.shop.domain.model.Order;
 import com.shop.domain.model.OrderItem;
 import com.shop.domain.model.OrderStatus;
+import com.shop.domain.port.OrderUseCase;
 import com.shop.presentation.dto.OrderDto;
 import com.shop.presentation.dto.OrderItemDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,13 +21,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Tag(name = "Order Management", description = "APIs for managing orders")
 public class OrderController {
-    private final OrderService orderService;
+    private final OrderUseCase orderUseCase;
 
     @PostMapping
     @Operation(summary = "Create a new order", description = "Creates a new order with the provided details")
     public ResponseEntity<OrderDto> createOrder(@RequestBody OrderDto orderDto) {
         Order order = toDomain(orderDto);
-        Order savedOrder = orderService.createOrder(order);
+        Order savedOrder = orderUseCase.createOrder(order);
         return ResponseEntity.ok(toDto(savedOrder));
     }
 
@@ -36,7 +36,7 @@ public class OrderController {
     public ResponseEntity<OrderDto> getOrder(
             @Parameter(description = "Order ID", required = true)
             @PathVariable Long id) {
-        return orderService.getOrder(id)
+        return orderUseCase.getOrder(id)
                 .map(this::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -45,7 +45,7 @@ public class OrderController {
     @GetMapping
     @Operation(summary = "Get all orders", description = "Retrieves all orders in the system")
     public ResponseEntity<List<OrderDto>> getAllOrders() {
-        List<OrderDto> orders = orderService.getAllOrders().stream()
+        List<OrderDto> orders = orderUseCase.getAllOrders().stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(orders);
@@ -58,7 +58,7 @@ public class OrderController {
             @PathVariable Long id,
             @Parameter(description = "New order status", required = true)
             @RequestParam OrderStatus status) {
-        Order updatedOrder = orderService.updateOrderStatus(id, status);
+        Order updatedOrder = orderUseCase.updateOrderStatus(id, status);
         return ResponseEntity.ok(toDto(updatedOrder));
     }
 
@@ -67,7 +67,7 @@ public class OrderController {
     public ResponseEntity<Void> deleteOrder(
             @Parameter(description = "Order ID", required = true)
             @PathVariable Long id) {
-        orderService.deleteOrder(id);
+        orderUseCase.deleteOrder(id);
         return ResponseEntity.noContent().build();
     }
 

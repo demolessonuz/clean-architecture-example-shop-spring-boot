@@ -1,7 +1,7 @@
 package com.shop.presentation.controller;
 
-import com.shop.application.service.ProductService;
 import com.shop.domain.model.Product;
+import com.shop.domain.port.ProductUseCase;
 import com.shop.presentation.dto.ProductDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,13 +18,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Tag(name = "Product Management", description = "APIs for managing products")
 public class ProductController {
-    private final ProductService productService;
+    private final ProductUseCase productUseCase;
 
     @PostMapping
     @Operation(summary = "Create a new product", description = "Creates a new product with the provided details")
     public ResponseEntity<ProductDto> createProduct(@RequestBody ProductDto productDto) {
         Product product = toDomain(productDto);
-        Product savedProduct = productService.createProduct(product);
+        Product savedProduct = productUseCase.createProduct(product);
         return ResponseEntity.ok(toDto(savedProduct));
     }
 
@@ -33,7 +33,7 @@ public class ProductController {
     public ResponseEntity<ProductDto> getProduct(
             @Parameter(description = "Product ID", required = true)
             @PathVariable Long id) {
-        return productService.getProduct(id)
+        return productUseCase.getProduct(id)
                 .map(this::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -42,7 +42,7 @@ public class ProductController {
     @GetMapping
     @Operation(summary = "Get all products", description = "Retrieves all products in the system")
     public ResponseEntity<List<ProductDto>> getAllProducts() {
-        List<ProductDto> products = productService.getAllProducts().stream()
+        List<ProductDto> products = productUseCase.getAllProducts().stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(products);
@@ -55,8 +55,18 @@ public class ProductController {
             @PathVariable Long id,
             @RequestBody ProductDto productDto) {
         Product product = toDomain(productDto);
-        product.setId(id);
-        Product updatedProduct = productService.updateProduct(product);
+        Product updatedProduct = productUseCase.updateProduct(id, product);
+        return ResponseEntity.ok(toDto(updatedProduct));
+    }
+
+    @PutMapping("/{id}/stock")
+    @Operation(summary = "Update product stock", description = "Updates the stock quantity of a product")
+    public ResponseEntity<ProductDto> updateStock(
+            @Parameter(description = "Product ID", required = true)
+            @PathVariable Long id,
+            @Parameter(description = "New stock quantity", required = true)
+            @RequestParam int quantity) {
+        Product updatedProduct = productUseCase.updateStock(id, quantity);
         return ResponseEntity.ok(toDto(updatedProduct));
     }
 
@@ -65,7 +75,7 @@ public class ProductController {
     public ResponseEntity<Void> deleteProduct(
             @Parameter(description = "Product ID", required = true)
             @PathVariable Long id) {
-        productService.deleteProduct(id);
+        productUseCase.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }
 
