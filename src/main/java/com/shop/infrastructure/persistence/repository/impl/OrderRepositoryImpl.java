@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderRepositoryImpl implements OrderRepository {
     private final OrderJpaRepository orderJpaRepository;
-
     @Override
     public Order save(Order order) {
         OrderJpaEntity entity = toEntity(order);
